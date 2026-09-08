@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEditor.Overlays;
+using UnityEngine;
 
 /*
 문제 정의 
@@ -125,18 +127,159 @@ Runtime State 갱신
 새 기준점 확립
  */
 
+enum OfflineTradeState
+{
+    Prepare = 0,
+    Traveling = 1,
+    Completed = 2,
+}
 
 public class OfflineTradeManager : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    [SerializeField] private float duration = 60f;
+    private float elapsed;
+
+
+    private DateTime lastAppliedUtc;
+
+    private OfflineTradeState currentState;
+
+    private OfflineSaveData currentSaveData;
+
+    public float Elapsed => elapsed;
+    public float Progress => elapsed / duration;
+    public DateTime LastAppliedUtc => lastAppliedUtc;
+    public OfflineTradeState CurrentState => currentState;
+    public string CurrentStateString => currentState.ToString();
+
+    private void Awake()
     {
-        
+        elapsed = 0;
+        lastAppliedUtc = DateTime.UtcNow;
+        currentState = OfflineTradeState.Prepare;
     }
 
-    // Update is called once per frame
-    void Update()
+    private void Update()
     {
-        
+        if (currentState == OfflineTradeState.Traveling)
+        {
+            elapsed += Time.deltaTime;
+
+            if (elapsed >= duration)
+            {
+                elapsed = duration;
+
+                currentState = OfflineTradeState.Completed;
+            }
+        }
+    }
+
+    public void TradeStart()
+    {
+        if (currentState == OfflineTradeState.Prepare)
+        {
+            elapsed = 0;
+            lastAppliedUtc = DateTime.UtcNow;
+            currentState = OfflineTradeState.Traveling;
+        }
+
+        if (currentState == OfflineTradeState.Completed)
+        {
+            currentState = OfflineTradeState.Prepare;
+        }
+    }
+
+    private bool Restore(DateTime currentUtc)
+    {
+        bool restored = false;
+
+        if (currentUtc < lastAppliedUtc)
+        {
+            return restored;
+        }
+
+        if (currentState == OfflineTradeState.Traveling)
+        {
+            TimeSpan offlineElapsed = currentUtc - lastAppliedUtc;
+
+            double offlineSeconds = offlineElapsed.TotalSeconds;
+
+            if (offlineSeconds < 0)
+            {
+                offlineSeconds = 0;
+            }
+
+            elapsed += (float)offlineSeconds;
+
+            lastAppliedUtc = currentUtc;
+
+            if (duration <= elapsed)
+            {
+                elapsed = duration;
+                currentState = OfflineTradeState.Completed;
+            }
+
+            restored = true;
+
+            return restored;
+        }
+
+        return restored;
+    }
+
+    public void SaveButton()
+    {
+        Debug.Log("Save Button");
+        SaveTrade();
+    }
+
+    public void LoadButton()
+    {
+        if (currentSaveData == null)
+            return;
+
+        Debug.Log("Load Button");
+        Load(currentSaveData);
+    }
+
+    public void ResetButton()
+    {
+        Debug.Log("Reset Button");
+
+        elapsed = 0;
+        lastAppliedUtc = DateTime.UtcNow;
+        currentState = OfflineTradeState.Prepare;
+    }
+
+    public OfflineSaveData SaveTrade()
+    {
+        OfflineSaveData savedata = new OfflineSaveData();
+
+        savedata.elapsed = elapsed;
+        savedata.lastAppliedUtcTicks = lastAppliedUtc.Ticks;
+        savedata.currentState = (int)currentState;
+
+        Debug.Log($"Save Result \n" +
+            $" Elapsed = {savedata.elapsed}\n" +
+            $"LastAppliedUtcTicks = {savedata.lastAppliedUtcTicks.ToString()} \n" +
+            $"CurrentState = {savedata.currentState.ToString()}");
+
+        currentSaveData = savedata;
+
+        return savedata;
+    }
+
+    public void Load(OfflineSaveData saveData)
+    {
+        elapsed = saveData.elapsed;
+        DateTime loadedLastAppliedUtc = new DateTime(saveData.lastAppliedUtcTicks, DateTimeKind.Utc);
+        lastAppliedUtc = loadedLastAppliedUtc;
+        currentState = (OfflineTradeState)saveData.currentState;
+
+
+        Debug.Log($"Load Result \n" +
+            $" Elapsed = {elapsed}\n" +
+            $"LastAppliedUtcTicks = {lastAppliedUtc.ToString()} \n" +
+            $"CurrentState = {currentState.ToString()}");
     }
 }
