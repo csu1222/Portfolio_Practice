@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System;
 using UnityEditor.Overlays;
 using UnityEngine;
 
@@ -195,6 +196,18 @@ public class OfflineTradeManager : MonoBehaviour
 
         if (currentUtc < lastAppliedUtc)
         {
+            Debug.Log(
+                $"Restore rejected: Clock rollback\n" +
+                $"CurrentUtc = {currentUtc:O}\n" +
+                $"LastAppliedUtc = {lastAppliedUtc:O}"
+            );
+
+            return restored;
+        }
+
+        if (currentState == OfflineTradeState.Completed)
+        {
+            Debug.Log("Trade is Complete");
             return restored;
         }
 
@@ -204,10 +217,6 @@ public class OfflineTradeManager : MonoBehaviour
 
             double offlineSeconds = offlineElapsed.TotalSeconds;
 
-            if (offlineSeconds < 0)
-            {
-                offlineSeconds = 0;
-            }
 
             elapsed += (float)offlineSeconds;
 
@@ -224,6 +233,7 @@ public class OfflineTradeManager : MonoBehaviour
             return restored;
         }
 
+
         return restored;
     }
 
@@ -235,9 +245,6 @@ public class OfflineTradeManager : MonoBehaviour
 
     public void LoadButton()
     {
-        if (currentSaveData == null)
-            return;
-
         Debug.Log("Load Button");
         Load(currentSaveData);
     }
@@ -253,14 +260,42 @@ public class OfflineTradeManager : MonoBehaviour
 
     public void RestoreButton()
     {
+
         Debug.Log("Restore Button");
-        Load(currentSaveData);
-        Restore(DateTime.UtcNow);
+
+        // test 
+        DateTime testTime = DateTime.UtcNow.AddSeconds(-30);
+
+        if(Load(currentSaveData))
+        {
+            Debug.Log(
+                $"Before Restore\n" +
+                $"Elapsed = {elapsed}\n" +
+                $"LastAppliedUtc = {lastAppliedUtc:O}\n" +
+                $"TestTime = {testTime:O}\n" +
+                $"Difference = {(testTime - lastAppliedUtc).TotalSeconds}"
+            );
+
+            Restore(testTime);
+
+            Debug.Log(
+                $"After Restore\n" +
+                $"Elapsed = {elapsed}\n" +
+                $"LastAppliedUtc = {lastAppliedUtc:O}\n" +
+                $"State = {currentState}"
+            );
+        }
+
+
+        //if (Load(currentSaveData))
+        //    Restore(DateTime.UtcNow);
     }
 
     public OfflineSaveData SaveTrade()
     {
         OfflineSaveData savedata = new OfflineSaveData();
+
+        lastAppliedUtc = DateTime.UtcNow;
 
         savedata.elapsed = elapsed;
         savedata.lastAppliedUtcTicks = lastAppliedUtc.Ticks;
@@ -276,8 +311,54 @@ public class OfflineTradeManager : MonoBehaviour
         return savedata;
     }
 
-    public void Load(OfflineSaveData saveData)
+    public bool Load(OfflineSaveData saveData)
     {
+
+        bool result = false;
+
+        if (saveData == null)
+        {
+            Debug.LogWarning("Load failed: SaveData does not exist.");
+            return result;
+        }
+
+        if (!Enum.IsDefined(typeof(OfflineTradeState), saveData.currentState))
+        {
+            Debug.LogWarning("Load failed: Invalid CurrentState.");
+            return result;
+        }
+
+        if (saveData.elapsed < 0 || saveData.elapsed > duration)
+        {
+            Debug.LogWarning("Load failed:Invalid Elapsed.");
+            return result;
+        }
+
+        if (saveData.currentState == (int)OfflineTradeState.Traveling && saveData.elapsed >= duration)
+        {
+            Debug.LogWarning("Load failed:Invalid Elapsed.");
+            return result;
+        }
+
+        if (saveData.currentState == (int)OfflineTradeState.Completed && saveData.elapsed < duration)
+        {
+            Debug.LogWarning("Load failed:Invalid Elapsed.");
+            return result;
+        }
+
+        if (saveData.currentState == (int)OfflineTradeState.Prepare && saveData.elapsed != 0)
+        {
+            Debug.LogWarning("Load failed:Invalid Elapsed.");
+            return result;
+        }
+
+        if (saveData.lastAppliedUtcTicks < DateTime.MinValue.Ticks ||
+    saveData.lastAppliedUtcTicks > DateTime.MaxValue.Ticks)
+        {
+            Debug.LogWarning("Load failed: Invalid UTC ticks.");
+            return false;
+        }
+
         elapsed = saveData.elapsed;
         DateTime loadedLastAppliedUtc = new DateTime(saveData.lastAppliedUtcTicks, DateTimeKind.Utc);
         lastAppliedUtc = loadedLastAppliedUtc;
@@ -288,5 +369,9 @@ public class OfflineTradeManager : MonoBehaviour
             $" Elapsed = {elapsed}\n" +
             $"LastAppliedUtcTicks = {lastAppliedUtc.ToString()} \n" +
             $"CurrentState = {currentState.ToString()}");
+
+        result = true;
+
+        return result;
     }
 }
