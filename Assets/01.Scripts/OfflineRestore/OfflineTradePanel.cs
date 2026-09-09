@@ -16,7 +16,7 @@ public class OfflineTradePanel : MonoBehaviour
     {
         if (manager == null)
         {
-            manager = FindFirstObjectByType<OfflineTradeManager>();
+            manager = FindAnyObjectByType<OfflineTradeManager>();
         }
 
         if (currentTradeState == null)

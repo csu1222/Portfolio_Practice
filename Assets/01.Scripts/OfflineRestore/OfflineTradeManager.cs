@@ -127,7 +127,7 @@ Runtime State 갱신
 새 기준점 확립
  */
 
-enum OfflineTradeState
+public enum OfflineTradeState
 {
     Prepare = 0,
     Traveling = 1,
@@ -249,6 +249,13 @@ public class OfflineTradeManager : MonoBehaviour
         elapsed = 0;
         lastAppliedUtc = DateTime.UtcNow;
         currentState = OfflineTradeState.Prepare;
+    }
+
+    public void RestoreButton()
+    {
+        Debug.Log("Restore Button");
+        Load(currentSaveData);
+        Restore(DateTime.UtcNow);
     }
 
     public OfflineSaveData SaveTrade()
