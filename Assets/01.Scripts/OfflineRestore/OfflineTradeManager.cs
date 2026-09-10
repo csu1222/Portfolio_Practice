@@ -241,12 +241,14 @@ public class OfflineTradeManager : MonoBehaviour
     {
         Debug.Log("Save Button");
         SaveTrade();
+        PrintTestLog();
     }
 
     public void LoadButton()
     {
         Debug.Log("Load Button");
         Load(currentSaveData);
+        PrintTestLog();
     }
 
     public void ResetButton()
@@ -263,32 +265,51 @@ public class OfflineTradeManager : MonoBehaviour
 
         Debug.Log("Restore Button");
 
-        // test 
-        DateTime testTime = DateTime.UtcNow.AddSeconds(-30);
+        //// test 
+        //DateTime testTime = DateTime.UtcNow.AddSeconds(-30);
 
-        if(Load(currentSaveData))
-        {
-            Debug.Log(
-                $"Before Restore\n" +
-                $"Elapsed = {elapsed}\n" +
-                $"LastAppliedUtc = {lastAppliedUtc:O}\n" +
-                $"TestTime = {testTime:O}\n" +
-                $"Difference = {(testTime - lastAppliedUtc).TotalSeconds}"
-            );
+        //if(Load(currentSaveData))
+        //{
+        //    Debug.Log(
+        //        $"Before Restore\n" +
+        //        $"Elapsed = {elapsed}\n" +
+        //        $"LastAppliedUtc = {lastAppliedUtc:O}\n" +
+        //        $"TestTime = {testTime:O}\n" +
+        //        $"Difference = {(testTime - lastAppliedUtc).TotalSeconds}"
+        //    );
 
-            Restore(testTime);
+        //    Restore(testTime);
 
-            Debug.Log(
-                $"After Restore\n" +
-                $"Elapsed = {elapsed}\n" +
-                $"LastAppliedUtc = {lastAppliedUtc:O}\n" +
-                $"State = {currentState}"
-            );
-        }
+        //    Debug.Log(
+        //        $"After Restore\n" +
+        //        $"Elapsed = {elapsed}\n" +
+        //        $"LastAppliedUtc = {lastAppliedUtc:O}\n" +
+        //        $"State = {currentState}"
+        //    );
+        //}
 
 
         //if (Load(currentSaveData))
         //    Restore(DateTime.UtcNow);
+
+        if (Load(currentSaveData))
+        {
+            DateTime testCurrentUtc = DateTime.UtcNow;
+
+            Restore(testCurrentUtc);
+
+            float firstElapsed = elapsed;
+
+            Restore(testCurrentUtc);
+
+            float secondElapsed = elapsed;
+
+            Debug.Log(
+                $"First Elapsed = {firstElapsed}\n" +
+                $"Second Elapsed = {secondElapsed}\n" +
+                $"Difference = {secondElapsed - firstElapsed}"
+            );
+        }
     }
 
     public OfflineSaveData SaveTrade()
@@ -373,5 +394,20 @@ public class OfflineTradeManager : MonoBehaviour
         result = true;
 
         return result;
+    }
+
+    private void PrintTestLog()
+    {
+        Debug.Log($"Current State : {currentState}\n" +
+            $"Elapsed : {elapsed}\n" +
+            $"Last Applied UTC : {lastAppliedUtc.Ticks}\n");
+    }
+
+    private void PrintTestLog(DateTime CurrentUtc)
+    {
+        Debug.Log($"Current State : {currentState}\n" +
+            $"Elapsed : {elapsed}\n" +
+            $"Last Applied UTC : {lastAppliedUtc.Ticks}\n" +
+            $"Current UTC : {CurrentUtc.Ticks}");
     }
 }
