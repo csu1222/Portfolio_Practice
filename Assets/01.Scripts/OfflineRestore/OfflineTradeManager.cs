@@ -200,6 +200,12 @@ public class OfflineTradeManager : MonoBehaviour
         if (currentState == OfflineTradeState.Traveling)
         {
 
+            Debug.Log($"[Manage][Restore] \n" +
+                $"Applied Elapsed : {elapsed} \n" +
+                $"Applied LastAppliedUtc : {lastAppliedUtc.Ticks} \n" +
+                $"Applied CurrentState : {currentState} \n" +
+                $"CurrentUtc : {currentUtc.Ticks}");
+
             if (lastAppliedUtc > currentUtc)
                 return false;
 
@@ -239,36 +245,66 @@ public class OfflineTradeManager : MonoBehaviour
 
     public bool ApplySnapShot(OfflineSaveData loadedData)
     {
-        if (loadedData == null)
+        bool result = false;
+        if (result = loadedData == null)
+        {
+            Debug.Log($"[Manager][ApplySnapShot] loaded Data is null. result : {result}");
             return false;
+        }
 
-        if(float.IsNaN(loadedData.elapsed) ||
+        if(result = float.IsNaN(loadedData.elapsed) ||
             float.IsInfinity(loadedData.elapsed))
+        {
+            Debug.Log($"[Manager][ApplySnapShot] elapsed is float Nan or Infinity. result : {result}");
             return false;
+        }
 
-        if (loadedData.elapsed < 0 || loadedData.elapsed > duration)
+        if (result = loadedData.elapsed < 0 || loadedData.elapsed > duration)
+        {
+            Debug.Log($"[Manager][ApplySnapShot] elapsed bound out. result : {result}");
             return false;
+        }
 
-        if (DateTime.MinValue.Ticks > loadedData.lastAppliedUtcTicks || 
+        if (result = DateTime.MinValue.Ticks > loadedData.lastAppliedUtcTicks || 
             loadedData.lastAppliedUtcTicks > DateTime.MaxValue.Ticks)
+        {
+            Debug.Log($"[Manager][ApplySnapShot] last tick min, max bound out result : {result}");
             return false;
+        }
 
-        if (!Enum.IsDefined(typeof(OfflineTradeState), loadedData.currentState))
+        if (result = !Enum.IsDefined(typeof(OfflineTradeState), loadedData.currentState))
+        {
+            Debug.Log($"[Manager][ApplySnapShot] current State not difine value. result : {result}");
             return false;
+        }
 
-        if (loadedData.currentState == 
+        if (result = loadedData.currentState == 
             (int)OfflineTradeState.Prepare && loadedData.elapsed != 0)
+        {
+            Debug.Log($"[Manager][ApplySnapShot] Prepare state and elapsed not available. result : {result}");
             return false;
-        if (loadedData.currentState == 
+        }
+        if (result = loadedData.currentState == 
             (int)OfflineTradeState.Traveling && loadedData.elapsed >= duration)
+        {
+            Debug.Log($"[Manager][ApplySnapShot] Traveling state and elapsed not available. result : {result}");
             return false;
-        if (loadedData.currentState == 
+        }
+        if (result = loadedData.currentState == 
             (int)OfflineTradeState.Completed && loadedData.elapsed != duration)
+        {
+            Debug.Log($"[Manager][ApplySnapShot] Completed state and elapsed not available. result : {result}");
             return false;
+        }
 
         elapsed = loadedData.elapsed;
         lastAppliedUtc = new DateTime(loadedData.lastAppliedUtcTicks, DateTimeKind.Utc);
         currentState = (OfflineTradeState)loadedData.currentState;
+
+        Debug.Log($"[Manage][ApplySnapShot] \n" +
+            $"Applied Elapsed : {elapsed} \n" +
+            $"Applied LastAppliedUtc : {lastAppliedUtc.Ticks} \n" +
+            $"Applied CurrentState : {currentState}");
 
         return true;
     }

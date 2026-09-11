@@ -635,8 +635,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 852283716}
-        m_TargetAssemblyTypeName: OfflineTradeManager, Assembly-CSharp
+      - m_Target: {fileID: 2073060981}
+        m_TargetAssemblyTypeName: OfflineTradeDebugPanel, Assembly-CSharp
         m_MethodName: RestoreButton
         m_Mode: 1
         m_Arguments:
@@ -895,8 +895,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 852283716}
-        m_TargetAssemblyTypeName: OfflineTradeManager, Assembly-CSharp
+      - m_Target: {fileID: 2073060981}
+        m_TargetAssemblyTypeName: OfflineTradeDebugPanel, Assembly-CSharp
         m_MethodName: SaveButton
         m_Mode: 1
         m_Arguments:
@@ -1028,8 +1028,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 852283716}
-        m_TargetAssemblyTypeName: OfflineTradeManager, Assembly-CSharp
+      - m_Target: {fileID: 2073060981}
+        m_TargetAssemblyTypeName: OfflineTradeDebugPanel, Assembly-CSharp
         m_MethodName: LoadButton
         m_Mode: 1
         m_Arguments:
@@ -1877,7 +1877,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1057613515}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 2073060981}
+        m_TargetAssemblyTypeName: OfflineTradeDebugPanel, Assembly-CSharp
+        m_MethodName: StartButton
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1057613515
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1952,6 +1964,50 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: -20, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &1294376971
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1294376973}
+  - component: {fileID: 1294376972}
+  m_Layer: 0
+  m_Name: OfflineSaveService
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1294376972
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1294376971}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 055730d6377d6af428150ab460bf8ab9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::OfflineSaveService
+--- !u!4 &1294376973
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1294376971}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -55.72423, y: -0.00001, z: -319.39865}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1436815491
 GameObject:
   m_ObjectHideFlags: 0
@@ -2004,9 +2060,6 @@ MonoBehaviour:
   manager: {fileID: 852283716}
   currentTradeState: {fileID: 1540180578}
   progressBar: {fileID: 754224662}
-  tradeStartButton: {fileID: 1057613514}
-  saveButton: {fileID: 526041190}
-  loadButton: {fileID: 535046720}
 --- !u!1 &1455717937
 GameObject:
   m_ObjectHideFlags: 0
@@ -2090,8 +2143,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 852283716}
-        m_TargetAssemblyTypeName: OfflineTradeManager, Assembly-CSharp
+      - m_Target: {fileID: 2073060981}
+        m_TargetAssemblyTypeName: OfflineTradeDebugPanel, Assembly-CSharp
         m_MethodName: ResetButton
         m_Mode: 1
         m_Arguments:
@@ -2630,6 +2683,52 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1622509788}
   m_CullTransparentMesh: 1
+--- !u!1 &2073060980
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2073060982}
+  - component: {fileID: 2073060981}
+  m_Layer: 0
+  m_Name: OfflineTradeDebugPanel
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &2073060981
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2073060980}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 35b0f1c782ff0c9489f4d9781afeca85, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::OfflineTradeDebugPanel
+  offlineTradeManager: {fileID: 852283716}
+  offlineSaveService: {fileID: 1294376972}
+--- !u!4 &2073060982
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2073060980}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -55.72423, y: -0.00001, z: -319.39865}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2136107339
 GameObject:
   m_ObjectHideFlags: 0
@@ -2676,3 +2775,5 @@ SceneRoots:
   - {fileID: 823453656}
   - {fileID: 653758797}
   - {fileID: 852283717}
+  - {fileID: 2073060982}
+  - {fileID: 1294376973}

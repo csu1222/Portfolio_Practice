@@ -12,8 +12,10 @@ public class OfflineSaveService : MonoBehaviour
 
     public OfflineSaveData Save(OfflineSaveData runtimeData)
     {
+        Debug.Log("[Save] Save Called");
         if (runtimeData == null)
         {
+            Debug.Log("SaveFaild runtime data is null");
             return null;
         }
 
@@ -22,7 +24,7 @@ public class OfflineSaveService : MonoBehaviour
         Debug.Log($"Save Result \n" +
             $" Elapsed = {currentSaveData.elapsed}\n" +
             $"LastAppliedUtcTicks = {currentSaveData.lastAppliedUtcTicks.ToString()} \n" +
-            $"CurrentState = {currentSaveData.currentState.ToString()}");
+            $"CurrentState = {(OfflineTradeState)currentSaveData.currentState}");
 
 
         return currentSaveData;
