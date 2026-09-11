@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
+using Unity.VisualScripting;
 using UnityEditor.Overlays;
 using UnityEngine;
 
@@ -140,12 +141,9 @@ public class OfflineTradeManager : MonoBehaviour
     [SerializeField] private float duration = 60f;
     private float elapsed;
 
-
     private DateTime lastAppliedUtc;
 
     private OfflineTradeState currentState;
-
-    private OfflineSaveData currentSaveData;
 
     public float Elapsed => elapsed;
     public float Progress => elapsed / duration;
@@ -173,6 +171,7 @@ public class OfflineTradeManager : MonoBehaviour
                 currentState = OfflineTradeState.Completed;
             }
         }
+
     }
 
     public void TradeStart()
@@ -190,33 +189,23 @@ public class OfflineTradeManager : MonoBehaviour
         }
     }
 
-    private bool Restore(DateTime currentUtc)
+    public bool Restore(DateTime currentUtc)
     {
-        bool restored = false;
-
-        if (currentUtc < lastAppliedUtc)
-        {
-            Debug.Log(
-                $"Restore rejected: Clock rollback\n" +
-                $"CurrentUtc = {currentUtc:O}\n" +
-                $"LastAppliedUtc = {lastAppliedUtc:O}"
-            );
-
-            return restored;
-        }
-
         if (currentState == OfflineTradeState.Completed)
         {
             Debug.Log("Trade is Complete");
-            return restored;
+            return false;
         }
 
         if (currentState == OfflineTradeState.Traveling)
         {
+
+            if (lastAppliedUtc > currentUtc)
+                return false;
+
             TimeSpan offlineElapsed = currentUtc - lastAppliedUtc;
 
             double offlineSeconds = offlineElapsed.TotalSeconds;
-
 
             elapsed += (float)offlineSeconds;
 
@@ -228,186 +217,72 @@ public class OfflineTradeManager : MonoBehaviour
                 currentState = OfflineTradeState.Completed;
             }
 
-            restored = true;
-
-            return restored;
+            return true;
         }
 
+        if (currentState == OfflineTradeState.Prepare)
+        {
 
-        return restored;
+            Debug.Log("Trade is Prepare");
+            return false;
+        }
+
+        return false;
     }
 
-    public void SaveButton()
+    public void Reset()
     {
-        Debug.Log("Save Button");
-        SaveTrade();
-        PrintTestLog();
-    }
-
-    public void LoadButton()
-    {
-        Debug.Log("Load Button");
-        Load(currentSaveData);
-        PrintTestLog();
-    }
-
-    public void ResetButton()
-    {
-        Debug.Log("Reset Button");
-
         elapsed = 0;
         lastAppliedUtc = DateTime.UtcNow;
         currentState = OfflineTradeState.Prepare;
     }
 
-    public void RestoreButton()
+    public bool ApplySnapShot(OfflineSaveData loadedData)
     {
+        if (loadedData == null)
+            return false;
 
-        Debug.Log("Restore Button");
+        if(float.IsNaN(loadedData.elapsed) ||
+            float.IsInfinity(loadedData.elapsed))
+            return false;
 
-        //// test 
-        //DateTime testTime = DateTime.UtcNow.AddSeconds(-30);
+        if (loadedData.elapsed < 0 || loadedData.elapsed > duration)
+            return false;
 
-        //if(Load(currentSaveData))
-        //{
-        //    Debug.Log(
-        //        $"Before Restore\n" +
-        //        $"Elapsed = {elapsed}\n" +
-        //        $"LastAppliedUtc = {lastAppliedUtc:O}\n" +
-        //        $"TestTime = {testTime:O}\n" +
-        //        $"Difference = {(testTime - lastAppliedUtc).TotalSeconds}"
-        //    );
+        if (DateTime.MinValue.Ticks > loadedData.lastAppliedUtcTicks || 
+            loadedData.lastAppliedUtcTicks > DateTime.MaxValue.Ticks)
+            return false;
 
-        //    Restore(testTime);
+        if (!Enum.IsDefined(typeof(OfflineTradeState), loadedData.currentState))
+            return false;
 
-        //    Debug.Log(
-        //        $"After Restore\n" +
-        //        $"Elapsed = {elapsed}\n" +
-        //        $"LastAppliedUtc = {lastAppliedUtc:O}\n" +
-        //        $"State = {currentState}"
-        //    );
-        //}
+        if (loadedData.currentState == 
+            (int)OfflineTradeState.Prepare && loadedData.elapsed != 0)
+            return false;
+        if (loadedData.currentState == 
+            (int)OfflineTradeState.Traveling && loadedData.elapsed >= duration)
+            return false;
+        if (loadedData.currentState == 
+            (int)OfflineTradeState.Completed && loadedData.elapsed != duration)
+            return false;
 
+        elapsed = loadedData.elapsed;
+        lastAppliedUtc = new DateTime(loadedData.lastAppliedUtcTicks, DateTimeKind.Utc);
+        currentState = (OfflineTradeState)loadedData.currentState;
 
-        //if (Load(currentSaveData))
-        //    Restore(DateTime.UtcNow);
-
-        if (Load(currentSaveData))
-        {
-            DateTime testCurrentUtc = DateTime.UtcNow;
-
-            Restore(testCurrentUtc);
-
-            float firstElapsed = elapsed;
-
-            Restore(testCurrentUtc);
-
-            float secondElapsed = elapsed;
-
-            Debug.Log(
-                $"First Elapsed = {firstElapsed}\n" +
-                $"Second Elapsed = {secondElapsed}\n" +
-                $"Difference = {secondElapsed - firstElapsed}"
-            );
-        }
+        return true;
     }
 
-    public OfflineSaveData SaveTrade()
+    public OfflineSaveData CreateSnapShot()
     {
-        OfflineSaveData savedata = new OfflineSaveData();
+        OfflineSaveData snapshot = new OfflineSaveData();
+
+        snapshot.elapsed = elapsed;
 
         lastAppliedUtc = DateTime.UtcNow;
+        snapshot.lastAppliedUtcTicks = lastAppliedUtc.Ticks;
+        snapshot.currentState = (int)currentState;
 
-        savedata.elapsed = elapsed;
-        savedata.lastAppliedUtcTicks = lastAppliedUtc.Ticks;
-        savedata.currentState = (int)currentState;
-
-        Debug.Log($"Save Result \n" +
-            $" Elapsed = {savedata.elapsed}\n" +
-            $"LastAppliedUtcTicks = {savedata.lastAppliedUtcTicks.ToString()} \n" +
-            $"CurrentState = {savedata.currentState.ToString()}");
-
-        currentSaveData = savedata;
-
-        return savedata;
-    }
-
-    public bool Load(OfflineSaveData saveData)
-    {
-
-        bool result = false;
-
-        if (saveData == null)
-        {
-            Debug.LogWarning("Load failed: SaveData does not exist.");
-            return result;
-        }
-
-        if (!Enum.IsDefined(typeof(OfflineTradeState), saveData.currentState))
-        {
-            Debug.LogWarning("Load failed: Invalid CurrentState.");
-            return result;
-        }
-
-        if (saveData.elapsed < 0 || saveData.elapsed > duration)
-        {
-            Debug.LogWarning("Load failed:Invalid Elapsed.");
-            return result;
-        }
-
-        if (saveData.currentState == (int)OfflineTradeState.Traveling && saveData.elapsed >= duration)
-        {
-            Debug.LogWarning("Load failed:Invalid Elapsed.");
-            return result;
-        }
-
-        if (saveData.currentState == (int)OfflineTradeState.Completed && saveData.elapsed < duration)
-        {
-            Debug.LogWarning("Load failed:Invalid Elapsed.");
-            return result;
-        }
-
-        if (saveData.currentState == (int)OfflineTradeState.Prepare && saveData.elapsed != 0)
-        {
-            Debug.LogWarning("Load failed:Invalid Elapsed.");
-            return result;
-        }
-
-        if (saveData.lastAppliedUtcTicks < DateTime.MinValue.Ticks ||
-    saveData.lastAppliedUtcTicks > DateTime.MaxValue.Ticks)
-        {
-            Debug.LogWarning("Load failed: Invalid UTC ticks.");
-            return false;
-        }
-
-        elapsed = saveData.elapsed;
-        DateTime loadedLastAppliedUtc = new DateTime(saveData.lastAppliedUtcTicks, DateTimeKind.Utc);
-        lastAppliedUtc = loadedLastAppliedUtc;
-        currentState = (OfflineTradeState)saveData.currentState;
-
-
-        Debug.Log($"Load Result \n" +
-            $" Elapsed = {elapsed}\n" +
-            $"LastAppliedUtcTicks = {lastAppliedUtc.ToString()} \n" +
-            $"CurrentState = {currentState.ToString()}");
-
-        result = true;
-
-        return result;
-    }
-
-    private void PrintTestLog()
-    {
-        Debug.Log($"Current State : {currentState}\n" +
-            $"Elapsed : {elapsed}\n" +
-            $"Last Applied UTC : {lastAppliedUtc.Ticks}\n");
-    }
-
-    private void PrintTestLog(DateTime CurrentUtc)
-    {
-        Debug.Log($"Current State : {currentState}\n" +
-            $"Elapsed : {elapsed}\n" +
-            $"Last Applied UTC : {lastAppliedUtc.Ticks}\n" +
-            $"Current UTC : {CurrentUtc.Ticks}");
+        return snapshot;
     }
 }
