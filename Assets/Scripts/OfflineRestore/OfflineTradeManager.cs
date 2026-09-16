@@ -145,6 +145,7 @@ public class OfflineTradeManager : MonoBehaviour
 
     private OfflineTradeState currentState;
 
+    public float Duration => duration;
     public float Elapsed => elapsed;
     public float Progress => elapsed / duration;
     public DateTime LastAppliedUtc => lastAppliedUtc;
