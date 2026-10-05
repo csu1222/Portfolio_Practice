@@ -85,6 +85,7 @@ public class RemainingTimeTradeManager : MonoBehaviour
 
         if (currentState == RemainingTimeTradeState.Traveling)
         {
+            Debug.Log($"[Trade Manager][Restore] LastAppliedUtc : {lastAppliedUtc},  CurrentUtc : {currentUtc}");
             if (lastAppliedUtc > currentUtc)
             {
                 return false;
