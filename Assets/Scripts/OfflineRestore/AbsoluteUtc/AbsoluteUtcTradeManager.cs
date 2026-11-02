@@ -1,4 +1,3 @@
-using PlasticGui;
 using System;
 using UnityEngine;
 
@@ -209,7 +208,9 @@ public class AbsoluteUtcTradeManager : MonoBehaviour
 
         double elapsedSeconds = (currentUtc - startUtc).TotalSeconds;
 
-        return Mathf.Clamp((float)elapsedSeconds, 0f, duration);
+        float runtimeDuration = GetRuntimeDuration();
+
+        return Mathf.Clamp((float)elapsedSeconds, 0f, runtimeDuration);
     }
 
     public float CalculateRemainingTime(DateTime currentUtc)
@@ -219,19 +220,31 @@ public class AbsoluteUtcTradeManager : MonoBehaviour
 
         double remainingSeconds = (expectedEndUtc - currentUtc).TotalSeconds;
 
-        return Mathf.Clamp((float)remainingSeconds, 0f, duration);
+        float runtimeDuration = GetRuntimeDuration();
+
+        return Mathf.Clamp((float)remainingSeconds, 0f, runtimeDuration);
     }
 
     public float CalculateProgressRatio(DateTime currentUtc)
     {
+
+        float runtimeDuration = GetRuntimeDuration();
+
         if (currentState == AbsoluteUtcTradeState.Prepare)
             return 0f;
 
-        if (duration <= 0f)
+        if (runtimeDuration <= 0f)
             return 0f;
 
         float elapsed = CalculateElapsedTime(currentUtc);
 
-        return Mathf.Clamp01(elapsed / duration);
+        return Mathf.Clamp01(elapsed / runtimeDuration);
+    }
+
+    private float GetRuntimeDuration()
+    {
+        float duration = (float)(expectedEndUtc - startUtc).TotalSeconds;
+
+        return duration;
     }
 }
